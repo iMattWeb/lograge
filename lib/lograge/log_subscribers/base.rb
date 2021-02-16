@@ -26,6 +26,7 @@ module Lograge
       def extract_request(event, payload)
         data = initial_data(payload)
         data.merge!(extract_status(payload))
+        data.merge!(extract_allocations(event))
         data.merge!(extract_runtimes(event, payload))
         data.merge!(extract_location)
         data.merge!(extract_unpermitted_params)
@@ -35,6 +36,14 @@ module Lograge
       %i(initial_data extract_status extract_runtimes
          extract_location extract_unpermitted_params).each do |method_name|
         define_method(method_name) { |*_arg| {} }
+      end
+      
+      def extract_allocations(event)
+        if (allocations = (event.respond_to?(:allocations) && event.allocations))
+          { allocations: allocations }
+        else
+          {}
+        end
       end
 
       def extract_status(payload)
